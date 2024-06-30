@@ -4,7 +4,7 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>FastCheckout</AssemblyName>
     <Description>Enhances checkout speed and accuracy in Supermarket Simulator by enabling one-click transactions and providing customizable checkout options</Description>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Title>Supermarket Simulator Fast Checkout Mod</Title>
@@ -14,8 +14,8 @@
     <RepositoryUrl>https://github.com/gguuimaraes/SupermarketSimulatorFastCheckoutMod</RepositoryUrl>
     <Company>gguuimaraes</Company>
     <Product>SupermarketSimulatorFastCheckout</Product>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <FileVersion>1.0.0</FileVersion>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

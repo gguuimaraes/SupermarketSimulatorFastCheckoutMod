@@ -137,8 +137,7 @@ namespace FastCheckout
                         correctChange - ___m_Checkout.TotalPrice * 0.5
                     ), 2);
                     
-                    _logger.LogDebug("minimumChange=" + minimumChange + ", correctChange=" + correctChange);
-
+                    var collectedChange = 0f;
                     if (minimumChange > 0)
                     {
                         var checkoutDrawer = (CheckoutDrawer)f_m_CheckoutDrawer.GetValue(___m_Checkout);
@@ -146,7 +145,6 @@ namespace FastCheckout
                         moneySlots = moneySlots.OrderByDescending(mp => mp.Value).ToArray();
 
                         bool canApproveChange;
-                        var collectedChange = 0f;
                         do
                         {
                             var betterMoneyPack = moneySlots.FirstOrDefault(mp =>
@@ -159,7 +157,10 @@ namespace FastCheckout
                             ___m_Checkout.AddOrRemoveChange(betterMoneyPack, true);
                             collectedChange = (float)f_m_CollectedChange.GetValue(___m_Checkout);
                             canApproveChange = (bool)p_m_CanApproveChange.GetValue(___m_Checkout);
-                        } while (!canApproveChange);
+                            
+                            if (canApproveChange && _minimumChangeOnly.Value) break;
+                            if (collectedChange >= correctChange) break;
+                        } while (true);
                     }
 
                     m_OnApproveCheckout.Invoke(__instance, null);
