@@ -6,7 +6,7 @@ This mod is designed to enhance your gameplay experience by streamlining the che
 
 - **Fast Checkout:** Activate this option to perform the checkout with one click; just click and all items will be scanned, payment will be processed, and the customer will be cleared. Note that with this option active, pressing the fast checkout key will have no effect. Default value: false
 - **Fast Checkout Key:** Press this key and scan an item to trigger the entire fast checkout process. Default value: LeftShift
-- **Minimum Change Only:** When this option is activated, the change you give back will always be the minimum allowed by the game. Explanation: The game allows you to give incorrect change, enabling you to profit from customers paying in cash. Default value: true
+- **Minimum Change Only:** When this option is activated, the change you give back will always be the minimum allowed by the game. Explanation: The game allows you to give incorrect change, enabling you to profit from customers paying in cash. Default value: false
 
 ## Requirements
 
