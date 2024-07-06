@@ -19,6 +19,7 @@ namespace FastCheckout
         private static ConfigEntry<bool> _fastCheckout;
         private static ConfigEntry<KeyCode> _fastCheckoutKey;
         private static ConfigEntry<bool> _minimumChangeOnly;
+        // private static ConfigEntry<bool> _zeroClick;
 
         private void Awake()
         {
@@ -26,8 +27,8 @@ namespace FastCheckout
                 "By enabling this option, all your checkouts will be instant. With a single click, you'll scan all items, receive payment, and finalize the transaction");
             _fastCheckoutKey = Config.Bind("Keys", "Fast Checkout Key", KeyCode.LeftShift,
                 "With this key, you'll only perform a fast checkout while it's pressed. To use it, hold down this key while clicking to scan an item, and the entire process of scanning the remaining items, receiving payment, and clearing the customer will occur. Note that if the Fast Checkout option is activated, pressing this key will have no effect");
-
-            _minimumChangeOnly = Config.Bind("Logic", "Minimum Change Only", true,
+            // _zeroClick = Config.Bind("Logic", "Zero Click", false, "Do fast checkouts without clicks or pressing any key");
+            _minimumChangeOnly = Config.Bind("Logic", "Minimum Change Only", false,
                 "This means that when a customer pays in cash and you need to give change, you will return the minimum amount the game allows. Explanation: The game allows you to give the incorrect amount of change, enabling you to profit from customers who pay in cash");
 
             Logger.LogInfo($"Plugin loaded");
@@ -56,37 +57,25 @@ namespace FastCheckout
             }
         }
 
+        private const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance |
+                                           BindingFlags.DeclaredOnly;
+
         [HarmonyPatch(typeof(CheckoutInteraction), "InteractWithProduct")]
         public static class CheckoutInteraction_InteractWithProduct
         {
-            private const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance |
-                                               BindingFlags.DeclaredOnly;
-
             private static readonly FieldInfo f_m_Customers = typeof(Checkout).GetField("m_Customers", flags);
 
             private static readonly FieldInfo f_m_PaymentMoney =
                 typeof(Customer).GetField("m_PaymentMoney", flags);
 
-            private static readonly FieldInfo
-                m_PaymentCard_field = typeof(Customer).GetField("m_PaymentCard", flags);
-
-            private static readonly FieldInfo f_m_CurrentMoney =
-                typeof(CheckoutInteraction).GetField("m_CurrentMoney", flags);
-
-            private static readonly MethodInfo m_InteractWithCustomerPayment =
-                typeof(CheckoutInteraction).GetMethod("InteractWithCustomerPayment", flags);
+            private static readonly FieldInfo f_m_PaymentViaCreditCard =
+                typeof(Customer).GetField("m_PaymentViaCreditCard", flags);
 
             private static readonly FieldInfo f_m_CollectedChange =
                 typeof(Checkout).GetField("m_CollectedChange", flags);
 
             private static readonly FieldInfo f_m_CorrectChange =
                 typeof(Checkout).GetField("m_CorrectChange", flags);
-
-            private static readonly FieldInfo f_m_CheckoutDrawer =
-                typeof(Checkout).GetField("m_CheckoutDrawer", flags);
-
-            private static readonly FieldInfo
-                f_m_MoneySlots = typeof(CheckoutDrawer).GetField("m_MoneySlots", flags);
 
             private static readonly FieldInfo
                 f_m_PosTerminal = typeof(Checkout).GetField("m_PosTerminal", flags);
@@ -115,55 +104,34 @@ namespace FastCheckout
 
                 var currentCustomer = customers.First();
 
-                var cash = true;
-                var gameObject = (GameObject)f_m_PaymentMoney.GetValue(currentCustomer);
+                var viaCreditCard = (bool)f_m_PaymentViaCreditCard.GetValue(currentCustomer);
 
-                if (gameObject == null)
+                if (viaCreditCard)
                 {
-                    gameObject = (GameObject)m_PaymentCard_field.GetValue(currentCustomer);
-                    cash = false;
+                    ___m_Checkout.TookCustomersCard();
+                }
+                else
+                {
+                    var paymentMoneyGameObject = (GameObject)f_m_PaymentMoney.GetValue(currentCustomer);
+                    var currentMoney = paymentMoneyGameObject.GetComponent<MoneyPack>();
+                    ___m_Checkout.TookCustomersCash(currentMoney.Value);
                 }
 
-                var currentMoney = gameObject.GetComponent<MoneyPack>();
-                f_m_CurrentMoney.SetValue(__instance, currentMoney);
-
-                m_InteractWithCustomerPayment.Invoke(__instance, null);
-
-                if (cash)
+                if (!viaCreditCard)
                 {
                     var correctChange = (float)f_m_CorrectChange.GetValue(___m_Checkout);
-                    var minimumChange = Math.Round(Math.Max(
+                    var minimumChange = (float)Math.Round(Math.Max(
                         correctChange * 0.5,
                         correctChange - ___m_Checkout.TotalPrice * 0.5
                     ), 2);
-                    
-                    var collectedChange = 0f;
-                    if (minimumChange > 0)
+
+                    f_m_CollectedChange.SetValue(___m_Checkout,
+                        _minimumChangeOnly.Value ? minimumChange : correctChange);
+                    if (_minimumChangeOnly.Value && !(bool)p_m_CanApproveChange.GetValue(___m_Checkout))
                     {
-                        var checkoutDrawer = (CheckoutDrawer)f_m_CheckoutDrawer.GetValue(___m_Checkout);
-                        var moneySlots = (MoneyPack[])f_m_MoneySlots.GetValue(checkoutDrawer);
-                        moneySlots = moneySlots.OrderByDescending(mp => mp.Value).ToArray();
-
-                        bool canApproveChange;
-                        do
-                        {
-                            var betterMoneyPack = moneySlots.FirstOrDefault(mp =>
-                                Math.Round(mp.Value + collectedChange, 2) <= (_minimumChangeOnly.Value ? minimumChange : correctChange));
-                            if (betterMoneyPack == null)
-                            {
-                                betterMoneyPack = moneySlots.Last();
-                            }
-
-                            ___m_Checkout.AddOrRemoveChange(betterMoneyPack, true);
-                            collectedChange = (float)f_m_CollectedChange.GetValue(___m_Checkout);
-                            canApproveChange = (bool)p_m_CanApproveChange.GetValue(___m_Checkout);
-                            
-                            if (canApproveChange && _minimumChangeOnly.Value) break;
-                            if (collectedChange >= correctChange) break;
-                        } while (true);
+                        f_m_CollectedChange.SetValue(___m_Checkout, minimumChange + 0.01f);
                     }
-
-                    m_OnApproveCheckout.Invoke(__instance, null);
+                    m_OnApproveCheckout.Invoke(CheckoutInteraction.Instance, null);
                 }
                 else
                 {
@@ -175,5 +143,23 @@ namespace FastCheckout
                 return false;
             }
         }
+
+        // [HarmonyPatch(typeof(Checkout), "StartCheckout")]
+        // public static class Checkout_StartCheckout
+        // {
+        //     private static readonly MethodInfo m_OnUse = typeof(CheckoutInteraction).GetMethod("OnUse", flags);
+        //     
+        //     public static void Postfix(Checkout __instance)
+        //     {
+        //         if (!__instance.HasCashier && __instance.CurrentState is Checkout.State.SCANNING or Checkout.State.IDLE)
+        //         {
+        //             _zeroClick.ConfigFile.Reload();
+        //             if (_zeroClick.Value)
+        //             {
+        //                 m_OnUse.Invoke(CheckoutInteraction.Instance, new object[] { true });
+        //             }
+        //         }
+        //     }
+        // }
     }
 }

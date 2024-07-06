@@ -4,7 +4,7 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>FastCheckout</AssemblyName>
     <Description>Enhances checkout speed and accuracy in Supermarket Simulator by enabling one-click transactions and providing customizable checkout options</Description>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Title>Supermarket Simulator Fast Checkout Mod</Title>
@@ -14,8 +14,8 @@
     <RepositoryUrl>https://github.com/gguuimaraes/SupermarketSimulatorFastCheckoutMod</RepositoryUrl>
     <Company>gguuimaraes</Company>
     <Product>SupermarketSimulatorFastCheckout</Product>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -36,16 +36,16 @@
   
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>D:\Supermarket.Simulator.v0.1.2.4a\Supermarket Simulator_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>D:\SteamLibrary\steamapps\common\Supermarket Simulator\Supermarket Simulator_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeanPool">
-      <HintPath>D:\Supermarket.Simulator.v0.1.2.4a\Supermarket Simulator_Data\Managed\LeanPool.dll</HintPath>
+      <HintPath>D:\SteamLibrary\steamapps\common\Supermarket Simulator\Supermarket Simulator_Data\Managed\LeanPool.dll</HintPath>
     </Reference>
     <Reference Include="MyBox">
-      <HintPath>D:\Supermarket.Simulator.v0.1.2.4a\Supermarket Simulator_Data\Managed\MyBox.dll</HintPath>
+      <HintPath>D:\SteamLibrary\steamapps\common\Supermarket Simulator\Supermarket Simulator_Data\Managed\MyBox.dll</HintPath>
     </Reference>
     <Reference Include="MyBox">
-      <HintPath>D:\Supermarket.Simulator.v0.1.2.4a\Supermarket Simulator_Data\Managed\netstandard.dll</HintPath>
+      <HintPath>D:\SteamLibrary\steamapps\common\Supermarket Simulator\Supermarket Simulator_Data\Managed\netstandard.dll</HintPath>
     </Reference>
   </ItemGroup>
   
